@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import socket
+from sys import argv
+
 from serial import rfc2217
 
 
@@ -35,3 +37,26 @@ class EspLink:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_ON)
         else:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_OFF)
+
+
+def main():
+    ip_address = argv[1]
+    flag = argv[2]
+    value = argv[3]
+
+    if value in ['on', '1']:
+        value = True
+    elif value in ['off', '0']:
+        value = False
+    else:
+        raise BaseException('Unsupported value %s (use on|1|off|0)' % value)
+
+    if flag == 'dtr':
+        EspLink(ip_address).set_dtr(value)
+    elif flag == 'rts':
+        EspLink(ip_address).set_rts(value)
+    else:
+        raise BaseException('Unsupported flag %s (use dtr|rts' % flag)
+
+if __name__ == "__main__":
+    main()
