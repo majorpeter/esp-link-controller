@@ -5,7 +5,7 @@ from sys import argv
 from serial import rfc2217
 
 
-class EspLink:
+class TelnetSerial:
     def __init__(self, ip_address):
         self.ip_address = ip_address
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,11 +52,12 @@ def main():
         raise BaseException('Unsupported value %s (use on|1|off|0)' % value)
 
     if flag == 'dtr':
-        EspLink(ip_address).set_dtr(value)
+        TelnetSerial(ip_address).set_dtr(value)
     elif flag == 'rts':
-        EspLink(ip_address).set_rts(value)
+        TelnetSerial(ip_address).set_rts(value)
     else:
         raise BaseException('Unsupported flag %s (use dtr|rts' % flag)
+
 
 if __name__ == "__main__":
     main()
