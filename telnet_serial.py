@@ -12,7 +12,8 @@ class TelnetSerial:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.socket.connect((self.ip_address, self.port))
-        self.send_will_com_control()
+        if not self.send_will_com_control():
+            raise BaseException('Cannot control COM port')
 
     """
     The sender of this command is willing to send com port control option commands.
@@ -20,6 +21,12 @@ class TelnetSerial:
     """
     def send_will_com_control(self):
         self.socket.send(rfc2217.IAC + rfc2217.WILL + rfc2217.COM_PORT_OPTION)
+        response = self.socket.recv(2)
+        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DO[0]:
+            return True
+        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DONT[0]:
+            return False
+        raise BaseException('Cannot process response: ' + str(response))
 
     def send_com_control_byte(self, cmd_byte):
         command = rfc2217.IAC + rfc2217.SB + rfc2217.COM_PORT_OPTION + rfc2217.SET_CONTROL + \
