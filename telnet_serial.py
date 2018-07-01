@@ -2,11 +2,12 @@
 import socket
 from sys import argv
 
+import serial
 from serial import rfc2217
 
 
 class TelnetSerial:
-    def __init__(self, ip_address, port=23, baud_rate=None):
+    def __init__(self, ip_address, port=23, baud_rate=None, parity=None):
         self.ip_address = ip_address
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -16,6 +17,8 @@ class TelnetSerial:
             raise BaseException('Cannot control COM port')
         if baud_rate is not None:
             self.send_baud_rate(baud_rate)
+        if parity is not None:
+            self.send_parity(parity)
 
     """
     The sender of this command is willing to send com port control option commands.
@@ -31,6 +34,10 @@ class TelnetSerial:
         raise BaseException('Cannot process response: ' + str(response))
 
     def send_baud_rate(self, baud_rate):
+        """
+        set baud rate on remote end
+        :param baud_rate: baud rate in Hz
+        """
         baud_bytes = bytes([
             (baud_rate & 0xff000000) >> 24,
             (baud_rate & 0x00ff0000) >> 16,
@@ -38,6 +45,18 @@ class TelnetSerial:
             baud_rate & 0x000000ff
         ])
         self.socket.send(rfc2217.IAC + rfc2217.SB + rfc2217.COM_PORT_OPTION + rfc2217.SET_BAUDRATE + baud_bytes +
+                         rfc2217.IAC + rfc2217.SE)
+
+    def send_parity(self, parity=serial.PARITY_NONE):
+        """
+        set parity on remote end
+        :param parity: parity setting from serial module
+        :return:
+        """
+        if parity not in rfc2217.RFC2217_PARITY_MAP:
+            raise BaseException('Invalid parity setting (%s)!' % parity)
+        parity_byte = bytes([rfc2217.RFC2217_PARITY_MAP[parity]])
+        self.socket.send(rfc2217.IAC + rfc2217.SB + rfc2217.COM_PORT_OPTION + rfc2217.SET_PARITY + parity_byte +
                          rfc2217.IAC + rfc2217.SE)
 
     def send_com_control_byte(self, cmd_byte):
