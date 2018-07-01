@@ -6,7 +6,7 @@ from serial import rfc2217
 
 
 class TelnetSerial:
-    def __init__(self, ip_address, port=23):
+    def __init__(self, ip_address, port=23, baud_rate=None):
         self.ip_address = ip_address
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,6 +14,8 @@ class TelnetSerial:
         self.socket.connect((self.ip_address, self.port))
         if not self.send_will_com_control():
             raise BaseException('Cannot control COM port')
+        if baud_rate is not None:
+            self.send_baud_rate(baud_rate)
 
     """
     The sender of this command is willing to send com port control option commands.
@@ -27,6 +29,16 @@ class TelnetSerial:
         if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DONT[0]:
             return False
         raise BaseException('Cannot process response: ' + str(response))
+
+    def send_baud_rate(self, baud_rate):
+        baud_bytes = bytes([
+            (baud_rate & 0xff000000) >> 24,
+            (baud_rate & 0x00ff0000) >> 16,
+            (baud_rate & 0x0000ff00) >> 8,
+            baud_rate & 0x000000ff
+        ])
+        self.socket.send(rfc2217.IAC + rfc2217.SB + rfc2217.COM_PORT_OPTION + rfc2217.SET_BAUDRATE + baud_bytes +
+                         rfc2217.IAC + rfc2217.SE)
 
     def send_com_control_byte(self, cmd_byte):
         command = rfc2217.IAC + rfc2217.SB + rfc2217.COM_PORT_OPTION + rfc2217.SET_CONTROL + \
