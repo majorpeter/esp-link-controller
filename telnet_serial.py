@@ -26,10 +26,10 @@ class TelnetSerial:
     """
     def send_will_com_control(self):
         self.socket.send(rfc2217.IAC + rfc2217.WILL + rfc2217.COM_PORT_OPTION)
-        response = self.socket.recv(2)
-        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DO[0]:
+        response = self.socket.recv(3)
+        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DO[0] and response[2] == rfc2217.COM_PORT_OPTION[0]:
             return True
-        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DONT[0]:
+        if response[0] == rfc2217.IAC[0] and response[1] == rfc2217.DONT[0] and response[2] == rfc2217.COM_PORT_OPTION[0]:
             return False
         raise BaseException('Cannot process response: ' + str(response))
 
