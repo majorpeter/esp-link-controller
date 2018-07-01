@@ -34,17 +34,24 @@ class TelnetSerial:
                   rfc2217.IAC + rfc2217.SE
         self.socket.send(command)
 
-    def set_dtr(self, on):
-        if on:
+    def setDTR(self, level):
+        if level:
             self.send_com_control_byte(rfc2217.SET_CONTROL_DTR_ON)
         else:
             self.send_com_control_byte(rfc2217.SET_CONTROL_DTR_OFF)
 
-    def set_rts(self, on):
-        if on:
+    def setRTS(self, level):
+        if level:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_ON)
         else:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_OFF)
+
+    def write(self, data):
+        self.socket.send(data)
+
+    def read(self, size=1):
+        data = self.socket.recv(size)
+        return data
 
 
 def main():
@@ -60,9 +67,9 @@ def main():
         raise BaseException('Unsupported value %s (use on|1|off|0)' % value)
 
     if flag == 'dtr':
-        TelnetSerial(ip_address).set_dtr(value)
+        TelnetSerial(ip_address).setDTR(value)
     elif flag == 'rts':
-        TelnetSerial(ip_address).set_rts(value)
+        TelnetSerial(ip_address).setRTS(value)
     else:
         raise BaseException('Unsupported flag %s (use dtr|rts' % flag)
 
