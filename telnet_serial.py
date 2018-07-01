@@ -6,11 +6,12 @@ from serial import rfc2217
 
 
 class TelnetSerial:
-    def __init__(self, ip_address):
+    def __init__(self, ip_address, port=23):
         self.ip_address = ip_address
+        self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.socket.connect((self.ip_address, 23))
+        self.socket.connect((self.ip_address, self.port))
         self.send_will_com_control()
 
     """
