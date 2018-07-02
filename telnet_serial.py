@@ -78,7 +78,12 @@ class TelnetSerial:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_OFF)
 
     def write(self, data):
-        self.socket.send(data)
+        telnet_escaped_data = bytearray()
+        for byte in data:
+            telnet_escaped_data.append(byte)
+            if byte == 0xff:
+                telnet_escaped_data.append(byte)
+        self.socket.send(telnet_escaped_data)
 
     def read(self, size=1):
         data = self.socket.recv(size)
