@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import socket
+from queue import Queue
 from sys import argv
+from threading import Thread
 
 import serial
 from serial import rfc2217
@@ -9,12 +11,12 @@ from serial import rfc2217
 def DEBUG(message):
     pass
 
-
 class TelnetSerial:
     def __init__(self, ip_address, port=23, baud_rate=None, parity=None):
         self.ip_address = ip_address
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.recv_queue = Queue()
 
         self.socket.connect((self.ip_address, self.port))
         if not self.send_will_com_control():
@@ -23,6 +25,8 @@ class TelnetSerial:
             self.send_baud_rate(baud_rate)
         if parity is not None:
             self.send_parity(parity)
+
+        Thread(target=self.thread_function).start()
 
     """
     The sender of this command is willing to send com port control option commands.
@@ -93,9 +97,17 @@ class TelnetSerial:
         self.socket.send(telnet_escaped_data)
 
     def read(self, size=1):
-        data = self.socket.recv(size)
-        DEBUG('Received: ' + str(data))
-        return data
+        result = []
+        for i in range(size):
+            result.append(self.recv_queue.get())
+        return result
+
+    def thread_function(self):
+        while True:
+            data = self.socket.recv(4096)
+            DEBUG('Received: ' + str(data))
+            for byte in data:
+                self.recv_queue.put(byte)
 
 
 def main():
