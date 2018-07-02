@@ -6,6 +6,10 @@ import serial
 from serial import rfc2217
 
 
+def DEBUG(message):
+    pass
+
+
 class TelnetSerial:
     def __init__(self, ip_address, port=23, baud_rate=None, parity=None):
         self.ip_address = ip_address
@@ -66,12 +70,14 @@ class TelnetSerial:
         self.socket.send(command)
 
     def setDTR(self, level):
+        DEBUG('DTR ' + str(level))
         if level:
             self.send_com_control_byte(rfc2217.SET_CONTROL_DTR_ON)
         else:
             self.send_com_control_byte(rfc2217.SET_CONTROL_DTR_OFF)
 
     def setRTS(self, level):
+        DEBUG('RTS ' + str(level))
         if level:
             self.send_com_control_byte(rfc2217.SET_CONTROL_RTS_ON)
         else:
@@ -83,10 +89,12 @@ class TelnetSerial:
             telnet_escaped_data.append(byte)
             if byte == 0xff:
                 telnet_escaped_data.append(byte)
+        DEBUG('Write escaped: %s (was %s)' % (str(telnet_escaped_data), str(data)))
         self.socket.send(telnet_escaped_data)
 
     def read(self, size=1):
         data = self.socket.recv(size)
+        DEBUG('Received: ' + str(data))
         return data
 
 
