@@ -26,7 +26,8 @@ class TelnetSerial:
         if parity is not None:
             self.send_parity(parity)
 
-        Thread(target=self.thread_function).start()
+        self.thread = Thread(target=self.thread_function, daemon=True)
+        self.thread.start()
 
     """
     The sender of this command is willing to send com port control option commands.
@@ -105,6 +106,8 @@ class TelnetSerial:
     def thread_function(self):
         while True:
             data = self.socket.recv(4096)
+            if len(data) == 0:
+                break
             DEBUG('Received: ' + str(data))
             for byte in data:
                 self.recv_queue.put(byte)
