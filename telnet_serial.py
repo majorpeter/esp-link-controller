@@ -11,10 +11,12 @@ from serial import rfc2217
 def DEBUG(message):
     pass
 
+
 class TelnetSerial:
-    def __init__(self, ip_address, port=23, baud_rate=None, parity=None):
+    def __init__(self, ip_address, port=23, baud_rate=None, parity=None, timeout=None):
         self.ip_address = ip_address
         self.port = port
+        self.timeout = timeout
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_queue = Queue()
 
@@ -100,7 +102,7 @@ class TelnetSerial:
     def read(self, size=1):
         result = []
         for i in range(size):
-            result.append(self.recv_queue.get())
+            result.append(self.recv_queue.get(timeout=self.timeout))
         return result
 
     def thread_function(self):
